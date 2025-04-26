@@ -57,7 +57,7 @@ RUN pip install -r custom_nodes/ComfyUI-KJNodes/requirements.txt
 
 WORKDIR /
 
-ADD src/start.sh src/rp_handler.py ./
+ADD src/start.sh src/rp_handler.py src/rp_io.py src/comfy_handler.py ./
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
