@@ -70,6 +70,16 @@ The `output` value will be the following.
 
 You can then easily extract all images or reconstruct the output directory locally using the keys as save paths.
 
+#### Using the CLI to call the API
+A basic CLI allowing you to test your endpoint is available: [clientside/client.py](./clientside/call_api.py).
+
+For instance, if you want to run the [clientside/flux_txt2img.json](./clientside/flux_txt2img.json) workflow to generate 4 images using Flux.1 \[dev\] with the prompt "A cute kitty in Game of Thrones", set the `RUNPOD_KEY` environment variable to your Runpod API key (create one [here](https://www.runpod.io/console/user/settings)) or create a `.env` file. You can then run the following commands:
+```bash
+cd clientside
+python call_api.py --endpoint YOUR_ENDPOINT_ID --workflow_path flux_txt2img.json --inputs "prompt=A cute kitty in Game of Thrones"
+```
+Replace `YOUR_ENDPOINT_ID` by the ID of the Runpod serverless endpoint you deployed.
+
 
 > [!WARNING]
 > Image Preview and other "preview" nodes that only display outputs in the UI without saving images to files will not output images and you'll get nothing out of them, they are just... for preview in you local ComfyUI setup.
