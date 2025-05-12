@@ -1,5 +1,8 @@
 import json
+import os
 import re
+
+from helpers import base64_encode
 
 
 def parse_job_input(job_input: dict) -> tuple:
@@ -39,17 +42,17 @@ def parse_job_input(job_input: dict) -> tuple:
     return workflow, workflow_inputs
 
 
-def replace_workflow_inputs(workflow: str, inputs: dict = {}) -> str:
+def replace_workflow_inputs(workflow: dict, inputs: dict = {}) -> dict:
     """
     Finds all placeholders in a workflow and replace them with the provided inputs.
     A placeholder in the original workflow is formated as "{{placeholder_name}}". If "placeholder_name" is a key in the inputs dict, it will be replaced by inputs["placeholder_name"].
 
     Args:
-        workflow (str): the original workflow containing placeholders.
+        workflow (dict): the original workflow containing placeholders.
         inputs (dict): mapping of the placeholders to their values. Defaults to {} (usefull if the workflow doesn't need any input).
 
     Returns:
-        str: a workflow where all placeholders have been replaced by their values. This workflow should be ready to be sent to the ComfyUI server.
+        dict: a workflow where all placeholders have been replaced by their values. This workflow should be ready to be sent to the ComfyUI server.
     """
 
     def replacer(match):
@@ -61,14 +64,32 @@ def replace_workflow_inputs(workflow: str, inputs: dict = {}) -> str:
         else:
             return match.group(0)
 
+    if isinstance(workflow, dict):
+        workflow = json.dumps(workflow)
+
     pattern = re.compile(r"\{\{(\w+)\}\}")
     placeholders_in_workflow = set()
     used_inputs = set()
-    result = pattern.sub(replacer, workflow)
+    result = pattern.sub(replacer, str(workflow))
     unused_inputs = set(inputs.keys()) - used_inputs
     if unused_inputs:
         print(f"The following inputs were not found in the workflow: {unused_inputs}")
     unresolved_placeholders = placeholders_in_workflow - used_inputs
     if unresolved_placeholders:
         print(f"The following placeholders were not replaced (missing in inputs): {unresolved_placeholders}")
-    return result
+    return json.loads(result)
+
+
+def get_comfyui_output(comfy_path: str, outputs: dict) -> dict:
+    output_path = os.path.join(comfy_path, "output")
+    output_images = {}  # a dict where keys are image path and values are b64-encoded images
+
+    for node_output in outputs.values():
+        if "images" in node_output:
+            for image in node_output["images"]:
+                filename, subfolder = image["filename"], image["subfolder"]
+                with open(os.path.join(output_path, subfolder, filename), "rb") as image_file:
+                    image_data = image_file.read()
+                output_images[subfolder.rstrip("/") + "/" + filename] = base64_encode(image_data)
+
+    return output_images

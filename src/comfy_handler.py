@@ -59,7 +59,7 @@ def get_prompt_history(host_url: str, prompt_id: str) -> dict:
     Returns:
         dict: prompt history returned by the ComfyUI server. See https://github.com/zigzagGmbH/VW-AA-ComfyUI-Workflow-Executor/blob/main/docs/COMFYUI_API.md for more info.
     """
-    url = host_url.rstrip("/") + f"history/{prompt_id}"
+    url = host_url.rstrip("/") + f"/history/{prompt_id}"
     response = requests.get(url)
     response.raise_for_status()
     return response.json()

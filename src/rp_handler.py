@@ -4,9 +4,10 @@ import time
 import runpod
 
 from comfy_handler import comfyui_server_ready, get_prompt_history, queue_workflow
-from rp_io import parse_job_input, replace_workflow_inputs
+from rp_io import get_comfyui_output, parse_job_input, replace_workflow_inputs
 
 COMFY_URL = "http://127.0.0.1:8188"
+COMFY_PATH = "/comfyui/"
 COMFY_MAX_RETRIES = 100
 COMFY_RETRIES_INTERVAL_MS = 100
 COMFY_MAX_POLLING_RETRIES = os.getenv("COMFY_MAX_POLLING_RETRIES", 250)
@@ -48,7 +49,7 @@ def handler(job):
     # 2. send workflow to ComfyUI server
     if not comfyui_server_ready(COMFY_URL, COMFY_MAX_RETRIES, COMFY_RETRIES_INTERVAL_MS):
         return {
-            "error": f"The ComfyUI server did not respond in {COMFY_MAX_RETRIES * COMFY_RETRIES_INTERVAL_MS / 100:.2f}s. Please try again or fix the "
+            "error": f"The ComfyUI server did not respond in {COMFY_MAX_RETRIES * COMFY_RETRIES_INTERVAL_MS / 1000:.2f}s. Please try again or fix the "
         }
     try:
         queued_workflow = queue_workflow(COMFY_URL, workflow_with_values)
@@ -72,9 +73,10 @@ def handler(job):
         time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
 
     # 4. handle ComfyUI output
-    # TODO
+    results = get_comfyui_output(COMFY_PATH, prompt_outputs)
+    print(f"Job done, returning {len(results)} results.")
 
-    return ...
+    return results
 
 
 if __name__ == "__main__":
