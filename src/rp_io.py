@@ -42,7 +42,7 @@ def parse_job_input(job_input: dict) -> tuple:
     return workflow, workflow_inputs
 
 
-def replace_workflow_inputs(workflow: dict, inputs: dict = {}) -> dict:
+def replace_workflow_inputs(workflow: str, inputs: dict = {}) -> str:
     """
     Finds all placeholders in a workflow and replace them with the provided inputs.
     A placeholder in the original workflow is formated as "{{placeholder_name}}". If "placeholder_name" is a key in the inputs dict, it will be replaced by inputs["placeholder_name"].
@@ -52,7 +52,7 @@ def replace_workflow_inputs(workflow: dict, inputs: dict = {}) -> dict:
         inputs (dict): mapping of the placeholders to their values. Defaults to {} (usefull if the workflow doesn't need any input).
 
     Returns:
-        dict: a workflow where all placeholders have been replaced by their values. This workflow should be ready to be sent to the ComfyUI server.
+        str: a workflow where all placeholders have been replaced by their values. This workflow should be ready to be sent to the ComfyUI server.
     """
 
     def replacer(match):
@@ -82,14 +82,20 @@ def replace_workflow_inputs(workflow: dict, inputs: dict = {}) -> dict:
 
 def get_comfyui_output(comfy_path: str, outputs: dict) -> dict:
     output_path = os.path.join(comfy_path, "output")
-    output_images = {}  # a dict where keys are image path and values are b64-encoded images
-
+    output_images = []
+    # collect all output images paths
     for node_output in outputs.values():
         if "images" in node_output:
             for image in node_output["images"]:
-                filename, subfolder = image["filename"], image["subfolder"]
-                with open(os.path.join(output_path, subfolder, filename), "rb") as image_file:
-                    image_data = image_file.read()
-                output_images[subfolder.rstrip("/") + "/" + filename] = base64_encode(image_data)
-
-    return output_images
+                output_images.append(os.path.join(image["subfolder"], image["filename"]))
+    # read images and b64-encode them
+    results = {}
+    for image in output_images:
+        image_path = os.path.join(output_path, image)
+        if os.path.exists(image_path):
+            with open(image_path, "rb") as image_file:
+                image_data = image_file.read()
+            results[image] = base64_encode(image_data)
+        else:
+            print(f"An output image could not be found at {image_path}")
+    return results
