@@ -58,7 +58,7 @@ RUN pip install -r custom_nodes/ComfyUI-KJNodes/requirements.txt
 
 # Add start script
 WORKDIR /
-COPY start.sh /start.sh
+COPY src/start.sh /start.sh
 RUN chmod +x /start.sh
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4
