@@ -69,10 +69,12 @@ WORKDIR /comfyui
 
 RUN mkdir -p models/unet/ models/text_encoders/ models/clip/ models/vae/
 
-RUN wget -q -O models/unet/flux1-dev-fp8.safetensors https://huggingface.co/Kijai/flux-fp8/resolve/main/flux1-dev-fp8.safetensors && \
-    wget -q -O models/text_encoders/google_t5-v1_1-xxl_encoderonly_fp16.safetensors https://huggingface.co/mcmonkey/google_t5-v1_1-xxl_encoderonly/resolve/main/model.safetensors && \
-    wget -q -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
-    wget -q -O models/vae/flux1_ae.safetensors https://huggingface.co/ostris/OpenFLUX.1/resolve/main/vae/diffusion_pytorch_model.safetensors
+RUN if [ "$MODEL_TYPE" = "flux1-dev" ]; then \
+      wget -q --header="Authorization: Bearer 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" -O models/unet/flux1-dev.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors && \
+      wget -q -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
+      wget -q -O models/clip/t5xxl_fp8_e4m3fn.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors && \
+      wget -q --header="Authorization: Bearer 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" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors; \
+    fi
 
 # Stage 3: final image
 FROM base as final
